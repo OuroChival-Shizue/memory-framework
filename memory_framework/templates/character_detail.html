@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-card">
+    <div>
+        <div class="eyebrow">Character Detail</div>
+        <h1>{{ name }}</h1>
+        <p class="hero-copy">左侧编辑当前字段，右侧查看完整变更历史。字段采用追加式写入，不做原地覆盖。</p>
+    </div>
+    <div class="hero-actions">
+        <a class="btn btn-outline-primary" href="{{ url_for('characters_page', project_id=project.id) }}">返回角色列表</a>
+    </div>
+</section>
+
+<section class="editor-grid">
+    <article class="panel-card">
+        <div class="panel-head">
+            <div><div class="eyebrow">Current State</div><h2>编辑当前值</h2></div>
+        </div>
+        <form id="updateCharacterForm" class="form-grid">
+            {% for field_name, field_value in latest_fields.items() %}
+            <label>
+                <span>{{ field_name }}</span>
+                <input class="form-control" name="{{ field_name }}" value="{{ field_value }}">
+            </label>
+            {% endfor %}
+            <label>
+                <span>章节</span>
+                <input class="form-control" name="chapter" type="number" min="0" value="{{ project.next_chapter }}">
+            </label>
+            <label>
+                <span>原因</span>
+                <input class="form-control" name="reason" value="手动编辑">
+            </label>
+            <div id="newCharacterFields" class="full-span"></div>
+            <div class="full-span split-actions">
+                <button class="btn btn-outline-primary" type="button" onclick="AgentWeb.addFieldRow('newCharacterFields')">添加新字段</button>
+                <button class="btn btn-primary" type="submit">保存</button>
+            </div>
+        </form>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-head">
+            <div><div class="eyebrow">Timeline</div><h2>字段历史</h2></div>
+        </div>
+        <div class="history-stack">
+            {% for item in field_histories %}
+            <div class="history-card">
+                <h3>{{ item.name }}</h3>
+                {% for entry in item.history %}
+                <div class="history-entry">
+                    <div class="meta-line">
+                        <span>第 {{ entry.chapter }} 章</span>
+                        <span>{{ entry.timestamp }}</span>
+                    </div>
+                    <strong>{{ entry.value }}</strong>
+                    <p>{{ entry.reason }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById("updateCharacterForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const fields = {};
+    Array.from(form.elements).forEach((element) => {
+        if (!element.name || ["chapter", "reason"].includes(element.name)) {
+            return;
+        }
+        fields[element.name] = element.value;
+    });
+    Object.assign(fields, AgentWeb.collectFieldRows("newCharacterFields"));
+    const payload = {
+        chapter: parseInt(form.chapter.value, 10),
+        reason: form.reason.value,
+        fields,
+    };
+    const result = await AgentWeb.postJSON("/project/{{ project.id }}/character/{{ name|urlencode }}/update", payload);
+    if (!result.ok) {
+        alert(result.data.error || "保存失败");
+        return;
+    }
+    location.reload();
+});
+</script>
+{% endblock %}

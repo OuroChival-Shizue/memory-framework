@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-card">
+    <div>
+        <div class="eyebrow">Project Hub</div>
+        <h1>把角色记忆、章节生成和状态维护收拢到项目维度</h1>
+        <p class="hero-copy">参考 Novel 的工作台结构，但保留 memory framework 的双 Agent、追加式状态历史和流式可视化更新。</p>
+    </div>
+    <div class="hero-actions">
+        <a class="btn btn-primary btn-lg" href="{{ url_for('new_project_page') }}">新建项目</a>
+    </div>
+</section>
+
+<section class="metrics-grid">
+    <article class="metric-card">
+        <span>项目数</span>
+        <strong>{{ stats.project_count }}</strong>
+    </article>
+    <article class="metric-card">
+        <span>章节总量</span>
+        <strong>{{ stats.chapter_count }}</strong>
+    </article>
+    <article class="metric-card">
+        <span>角色总量</span>
+        <strong>{{ stats.character_count }}</strong>
+    </article>
+    <article class="metric-card">
+        <span>进行中项目</span>
+        <strong>{{ stats.active_count }}</strong>
+    </article>
+</section>
+
+<section class="panel-card">
+    <div class="panel-head">
+        <div>
+            <div class="eyebrow">Projects</div>
+            <h2>项目列表</h2>
+        </div>
+    </div>
+
+    {% if projects %}
+    <div class="project-grid">
+        {% for item in projects %}
+        <article class="project-card">
+            <div class="card-badge">{{ item.status }}</div>
+            <h3>{{ item.title }}</h3>
+            <p class="card-copy">{{ item.description or "还没有填写项目描述。" }}</p>
+            <div class="meta-line">
+                <span>{{ item.genre or "未设题材" }}</span>
+                <span>{{ item.style or "未设风格" }}</span>
+            </div>
+            <div class="mini-progress">
+                <div class="mini-progress-bar" style="width: {{ item.completion_percent }}%;"></div>
+            </div>
+            <div class="meta-line">
+                <span>{{ item.chapter_count }}/{{ item.total_chapters }} 章节</span>
+                <span>{{ item.character_count }} 角色</span>
+            </div>
+            <div class="card-actions">
+                <a class="btn btn-primary" href="{{ url_for('project_dashboard', project_id=item.id) }}">进入项目</a>
+                <button class="btn btn-outline-danger" onclick="AgentWeb.deleteProject('{{ item.id }}')">删除</button>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-card">还没有项目。先创建一个工作区，再写角色、大纲和章节。</div>
+    {% endif %}
+</section>
+
+<a class="fab" href="{{ url_for('new_project_page') }}" title="创建项目" aria-label="创建项目">+</a>
+{% endblock %}

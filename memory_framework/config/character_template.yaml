@@ -1,0 +1,38 @@
+# 角色状态模板定义
+# 用户可以根据小说类型自定义
+
+character_states:
+  # 核心状态：每章必须更新，强制验证
+  core:
+    - name: location
+      type: string
+      description: 角色当前所在位置（城市/区域级别）
+
+    - name: alive
+      type: boolean
+      description: 角色是否存活
+
+    - name: health
+      type: enum
+      values: [健康, 轻伤, 重伤, 濒死]
+      description: 角色的健康状态
+
+  # 重要状态：有变化时更新
+  important:
+    - name: 武功等级
+      type: string
+      description: 角色的武功水平
+
+    - name: 主要装备
+      type: list
+      description: 角色携带的重要装备
+
+    - name: 关键关系
+      type: dict
+      description: 与其他主要角色的关系
+      format: "{'角色名': '关系类型'}"
+
+  # 可选状态：不强制追踪
+  optional:
+    - 当前情绪
+    - 短期目标

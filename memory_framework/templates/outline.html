@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-card">
+    <div>
+        <div class="eyebrow">Outline Editor</div>
+        <h1>大纲编辑</h1>
+        <p class="hero-copy">用一个页面集中维护故事框架、章节走向和约束。保存后项目状态会自动切到大纲就绪或保持写作状态。</p>
+    </div>
+    <div class="hero-actions">
+        <button id="saveOutlineBtn" class="btn btn-primary btn-lg">保存大纲</button>
+    </div>
+</section>
+
+<section class="editor-grid">
+    <article class="panel-card">
+        <div class="panel-head">
+            <div><div class="eyebrow">Markdown</div><h2>编辑区</h2></div>
+        </div>
+        <textarea id="outlineInput" class="editor-textarea">{{ outline }}</textarea>
+    </article>
+    <article class="panel-card">
+        <div class="panel-head">
+            <div><div class="eyebrow">Preview</div><h2>预览</h2></div>
+        </div>
+        <div id="outlinePreview" class="reading-surface"></div>
+    </article>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+AgentWeb.setupOutlinePreview("outlineInput", "outlinePreview");
+document.getElementById("saveOutlineBtn").addEventListener("click", async () => {
+    const outline = document.getElementById("outlineInput").value;
+    const result = await AgentWeb.postJSON("/project/{{ project.id }}/outline/save", { outline });
+    if (!result.ok) {
+        alert(result.data.error || "保存失败");
+        return;
+    }
+    alert("大纲已保存");
+});
+</script>
+{% endblock %}

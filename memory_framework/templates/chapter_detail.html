@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-card">
+    <div>
+        <div class="eyebrow">Chapter Detail</div>
+        <h1>第 {{ chapter_num }} 章</h1>
+        <p class="hero-copy">{{ summary if summary else "本章还没有摘要。生成章节时会自动补摘要，也可以稍后手动保存正文。" }}</p>
+    </div>
+    <div class="hero-actions stack-actions">
+        <button class="btn btn-outline-warning" id="regenerateBtn">重新生成状态</button>
+        <button class="btn btn-outline-danger" id="deleteChapterBtn">删除章节</button>
+    </div>
+</section>
+
+<section class="editor-grid">
+    <article class="panel-card">
+        <div class="panel-head">
+            <div><div class="eyebrow">Content</div><h2>章节正文</h2></div>
+            <button class="btn btn-primary btn-sm" id="saveChapterBtn">保存正文</button>
+        </div>
+        <textarea id="chapterContent" class="editor-textarea chapter-editor">{{ content }}</textarea>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-head">
+            <div><div class="eyebrow">State Changes</div><h2>本章状态变化</h2></div>
+        </div>
+        {% if changes %}
+        <div class="history-stack">
+            {% for item in changes %}
+            <div class="history-entry">
+                <div class="meta-line">
+                    <span>{{ item.character }}</span>
+                    <span>{{ item.field }}</span>
+                </div>
+                <strong>{{ item.value }}</strong>
+                <p>{{ item.reason }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-card compact">当前还没有记录到本章状态变化。</div>
+        {% endif %}
+    </article>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById("saveChapterBtn").addEventListener("click", async () => {
+    const result = await AgentWeb.postJSON("/project/{{ project.id }}/chapter/{{ chapter_num }}/save", {
+        content: document.getElementById("chapterContent").value,
+    });
+    if (!result.ok) {
+        alert(result.data.error || "保存失败");
+        return;
+    }
+    alert("章节已保存");
+});
+
+document.getElementById("deleteChapterBtn").addEventListener("click", async () => {
+    if (!confirm("确定删除这一章？")) {
+        return;
+    }
+    const result = await AgentWeb.deleteJSON("/project/{{ project.id }}/chapter/{{ chapter_num }}");
+    if (!result.ok) {
+        alert(result.data.error || "删除失败");
+        return;
+    }
+    location.href = "{{ url_for('chapters_page', project_id=project.id) }}";
+});
+
+AgentWeb.setupRegenerateButtons("{{ project.id }}", "#regenerateBtn", {{ chapter_num }});
+</script>
+{% endblock %}

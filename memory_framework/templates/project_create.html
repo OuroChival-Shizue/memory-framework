@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-card">
+    <div>
+        <div class="eyebrow">Create Project</div>
+        <h1>创建项目</h1>
+        <p class="hero-copy">这里用独立页面完成项目创建，不再依赖弹窗。提交成功后会直接进入项目仪表盘。</p>
+    </div>
+    <div class="hero-actions">
+        <a class="btn btn-outline-primary btn-lg" href="{{ url_for('projects_page') }}">返回项目列表</a>
+    </div>
+</section>
+
+<section class="panel-card">
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <form class="form-grid" action="{{ url_for('create_project') }}" method="post">
+        <label>
+            <span>标题</span>
+            <input class="form-control" name="title" value="{{ form_data.title if form_data else '' }}" required>
+        </label>
+        <label>
+            <span>题材</span>
+            <input class="form-control" name="genre" value="{{ form_data.genre if form_data else '' }}" placeholder="例如：武侠">
+        </label>
+        <label>
+            <span>风格</span>
+            <input class="form-control" name="style" value="{{ form_data.style if form_data else '' }}" placeholder="例如：冷峻">
+        </label>
+        <label>
+            <span>总章节数</span>
+            <input class="form-control" name="total_chapters" type="number" min="1" value="{{ form_data.total_chapters if form_data else 12 }}" required>
+        </label>
+        <label class="full-span">
+            <span>描述</span>
+            <textarea class="form-control" name="description" rows="6">{{ form_data.description if form_data else '' }}</textarea>
+        </label>
+        <div class="full-span text-end">
+            <button class="btn btn-primary btn-lg" type="submit">创建并进入</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

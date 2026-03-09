@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-card">
+    <div>
+        <div class="eyebrow">Project Config</div>
+        <h1>项目配置</h1>
+        <p class="hero-copy">这里保存模型访问参数和 V2 历史上下文参数。核心生成流程保持不变，只是配置改成项目级。</p>
+    </div>
+    <div class="hero-actions">
+        <button class="btn btn-primary btn-lg" id="saveConfigBtn">保存配置</button>
+    </div>
+</section>
+
+<section class="panel-card">
+    <form id="configForm" class="form-grid">
+        <label class="full-span"><span>API URL</span><input class="form-control" name="api_url" value="{{ config.api_url or '' }}" placeholder="https://api.openai.com/v1"></label>
+        <label class="full-span"><span>API Key</span><input class="form-control" name="api_key" type="password" value="{{ config.api_key or '' }}"></label>
+        <label><span>模型</span><input class="form-control" name="model" value="{{ config.model or '' }}" placeholder="gpt-4"></label>
+        <label><span>最近摘要数</span><input class="form-control" name="recent_summary_count" type="number" min="1" value="{{ config.v2_config.recent_summary_count }}"></label>
+        <label><span>压缩阈值</span><input class="form-control" name="compress_threshold" type="number" min="1" value="{{ config.v2_config.compress_threshold }}"></label>
+        <label><span>摘要最小长度</span><input class="form-control" name="summary_min" type="number" min="50" value="{{ config.v2_config.summary_length.min }}"></label>
+        <label><span>摘要最大长度</span><input class="form-control" name="summary_max" type="number" min="50" value="{{ config.v2_config.summary_length.max }}"></label>
+        <label><span>压缩摘要最小长度</span><input class="form-control" name="compressed_min" type="number" min="50" value="{{ config.v2_config.compressed_summary_length.min }}"></label>
+        <label><span>压缩摘要最大长度</span><input class="form-control" name="compressed_max" type="number" min="50" value="{{ config.v2_config.compressed_summary_length.max }}"></label>
+        <label class="full-span inline-check"><input type="checkbox" name="use_llm_cleaning" {% if config.v2_config.use_llm_cleaning %}checked{% endif %}><span>启用 LLM 清洗</span></label>
+    </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById("saveConfigBtn").addEventListener("click", async () => {
+    const form = document.getElementById("configForm");
+    const payload = {
+        api_url: form.api_url.value,
+        api_key: form.api_key.value,
+        model: form.model.value,
+        v2_config: {
+            recent_summary_count: parseInt(form.recent_summary_count.value, 10),
+            compress_threshold: parseInt(form.compress_threshold.value, 10),
+            summary_length: {
+                min: parseInt(form.summary_min.value, 10),
+                max: parseInt(form.summary_max.value, 10),
+            },
+            compressed_summary_length: {
+                min: parseInt(form.compressed_min.value, 10),
+                max: parseInt(form.compressed_max.value, 10),
+            },
+            use_llm_cleaning: form.use_llm_cleaning.checked,
+        },
+    };
+    const result = await AgentWeb.postJSON("/project/{{ project.id }}/config", payload);
+    if (!result.ok) {
+        alert(result.data.error || "保存失败");
+        return;
+    }
+    alert("配置已保存");
+});
+</script>
+{% endblock %}

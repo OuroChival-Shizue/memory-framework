@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-card">
+    <div>
+        <div class="eyebrow">Create Character</div>
+        <h1>创建角色</h1>
+        <p class="hero-copy">这里使用独立页面创建角色，不再依赖弹窗。提交后会直接进入角色详情页。</p>
+    </div>
+    <div class="hero-actions">
+        <a class="btn btn-outline-primary btn-lg" href="{{ url_for('characters_page', project_id=project.id) }}">返回角色列表</a>
+    </div>
+</section>
+
+<section class="panel-card">
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <form id="createCharacterForm" class="form-grid" action="{{ url_for('create_character', project_id=project.id) }}" method="post">
+        <label class="full-span">
+            <span>角色名</span>
+            <input class="form-control" name="name" value="{{ form_data.name if form_data else '' }}" required>
+        </label>
+        <label>
+            <span>章节</span>
+            <input class="form-control" name="chapter" type="number" min="0" value="{{ form_data.chapter if form_data else project.next_chapter }}">
+        </label>
+        <label>
+            <span>原因</span>
+            <input class="form-control" name="reason" value="{{ form_data.reason if form_data else '手动创建' }}">
+        </label>
+        <input type="hidden" name="fields" id="fieldsPayload">
+        <div id="characterFields" class="full-span"></div>
+        <div class="full-span split-actions">
+            <button class="btn btn-outline-primary" type="button" onclick="AgentWeb.addFieldRow('characterFields')">添加字段</button>
+            <button class="btn btn-primary btn-lg" type="submit">创建并进入</button>
+        </div>
+    </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const initialFields = {{ field_data|default({}, true)|tojson }};
+if (Object.keys(initialFields).length === 0) {
+    AgentWeb.addFieldRow("characterFields");
+} else {
+    Object.entries(initialFields).forEach(([key, value]) => {
+        AgentWeb.addFieldRow("characterFields");
+        const rows = document.querySelectorAll("#characterFields [data-field-key]");
+        const lastKey = rows[rows.length - 1];
+        const lastValue = lastKey.closest("div").querySelector("[data-field-value]");
+        lastKey.value = key;
+        lastValue.value = value;
+    });
+}
+
+document.getElementById("createCharacterForm").addEventListener("submit", (event) => {
+    document.getElementById("fieldsPayload").value = JSON.stringify(AgentWeb.collectFieldRows("characterFields"));
+});
+</script>
+{% endblock %}

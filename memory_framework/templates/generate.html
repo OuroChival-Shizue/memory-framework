@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-card">
+    <div>
+        <div class="eyebrow">Writing Task</div>
+        <h1>创建写作任务</h1>
+        <p class="hero-copy">这里直接创建后台写作任务。提交后即使关闭或切换页面，服务端也会继续生成；你重新打开页面后会自动续连任务日志。</p>
+    </div>
+    <div class="hero-actions">
+        <a class="btn btn-outline-primary btn-lg" href="{{ url_for('chapters_page', project_id=project.id) }}">返回章节面板</a>
+    </div>
+</section>
+
+<section class="editor-grid">
+    <article class="panel-card">
+        <div class="panel-head">
+            <div>
+                <div class="eyebrow">Task Setup</div>
+                <h2>任务配置</h2>
+            </div>
+        </div>
+        <form id="generateForm" class="form-grid">
+            <label>
+                <span>章节号</span>
+                <input class="form-control" name="chapter" type="number" min="1" value="{{ next_chapter }}">
+            </label>
+            <label class="full-span">
+                <span>额外提示</span>
+                <textarea class="form-control" name="summary" rows="8" placeholder="可选：补充本章目标、冲突、节奏或你希望回收的伏笔"></textarea>
+            </label>
+            <div class="full-span text-end">
+                <button class="btn btn-primary btn-lg" type="submit">开始创建任务</button>
+            </div>
+        </form>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-head">
+            <div>
+                <div class="eyebrow">Context</div>
+                <h2>当前写作环境</h2>
+            </div>
+        </div>
+        <div class="history-stack">
+            <div class="history-entry">
+                <div class="meta-line"><span>项目进度</span><span>{{ project.chapter_count }}/{{ project.total_chapters }}</span></div>
+                <p>{{ project.description or "项目尚未补充描述。" }}</p>
+            </div>
+            <div class="history-entry">
+                <div class="meta-line"><span>大纲状态</span><span>{{ "已存在" if outline else "未填写" }}</span></div>
+                <p>{{ outline[:300] if outline else "建议先补大纲，再创建章节任务。" }}</p>
+            </div>
+            <div class="history-entry">
+                <div class="meta-line"><span>最近章节</span><span>{{ recent_chapters|length }} 条</span></div>
+                {% if recent_chapters %}
+                {% for chapter in recent_chapters %}
+                <p>第 {{ chapter.num }} 章：{{ chapter.summary[:70] if chapter.summary else chapter.preview[:70] }}</p>
+                {% endfor %}
+                {% else %}
+                <p>还没有章节，当前将从第 1 章开始。</p>
+                {% endif %}
+            </div>
+        </div>
+    </article>
+</section>
+
+<section id="streamPanel" class="panel-card stream-panel" hidden>
+    <div class="panel-head">
+        <div>
+            <div class="eyebrow">Live Stream</div>
+            <h2 id="statusMsg">准备中...</h2>
+        </div>
+    </div>
+    <div class="stream-layout">
+        <pre id="contentStream" class="stream-content"></pre>
+        <div id="generateLog" class="stream-log"></div>
+    </div>
+</section>
+
+<section id="promptPanel" class="panel-card" hidden>
+    <div class="panel-head">
+        <div>
+            <div class="eyebrow">Prompt Capture</div>
+            <h2>LLM 调用前 Prompt</h2>
+        </div>
+        <div id="promptPath" class="item-subtle"></div>
+    </div>
+    <div class="history-stack">
+        <div class="history-entry">
+            <div class="meta-line"><span>Content Final Prompt</span><span>正文生成提示文本</span></div>
+            <pre id="finalPromptView" class="stream-content prompt-view"></pre>
+        </div>
+        <div class="history-entry">
+            <div class="meta-line"><span>Content Messages</span><span>正文生成实际发送的消息</span></div>
+            <pre id="messagePromptView" class="stream-content prompt-view"></pre>
+        </div>
+        <div class="history-entry">
+            <div class="meta-line"><span>State Update Prompt</span><span>状态修改提示文本</span></div>
+            <div id="statePromptPath" class="item-subtle"></div>
+            <pre id="statePromptView" class="stream-content prompt-view"></pre>
+        </div>
+        <div class="history-entry">
+            <div class="meta-line"><span>State Update Messages</span><span>状态修改实际发送的消息</span></div>
+            <pre id="stateMessagePromptView" class="stream-content prompt-view"></pre>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+AgentWeb.setupChapterGeneration("{{ project.id }}");
+</script>
+{% endblock %}

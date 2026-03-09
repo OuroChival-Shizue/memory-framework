@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-card">
+    <div>
+        <div class="eyebrow">Schema</div>
+        <h1>状态定义</h1>
+        <p class="hero-copy">这里维护角色字段和状态更新规则。双 Agent 的写入逻辑仍然沿用原来的 schema 约束。</p>
+    </div>
+    <div class="hero-actions">
+        <a class="btn btn-outline-primary" href="#fieldCreatePanel">添加字段</a>
+        <a class="btn btn-primary" href="#ruleCreatePanel">添加规则</a>
+    </div>
+</section>
+
+<section class="dashboard-grid">
+    <article id="fieldCreatePanel" class="panel-card">
+        <div class="panel-head">
+            <div><div class="eyebrow">Create</div><h2>新增字段</h2></div>
+        </div>
+        <form id="addFieldForm" class="form-grid">
+            <label><span>字段名</span><input class="form-control" name="name" required></label>
+            <label class="full-span"><span>描述</span><input class="form-control" name="description" required></label>
+            <label class="full-span inline-check"><input type="checkbox" name="required"><span>设为必填字段</span></label>
+            <div class="full-span text-end"><button class="btn btn-primary" type="submit">保存字段</button></div>
+        </form>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-head"><div><div class="eyebrow">Required</div><h2>必填字段</h2></div></div>
+        <div class="history-stack">
+            {% for name, desc in schema.required_fields.items() %}
+            <div class="history-entry">
+                <div class="meta-line"><span>{{ name }}</span><button class="btn btn-sm btn-outline-danger" onclick="AgentWeb.deleteJSONAndReload('/project/{{ project.id }}/schema/field/{{ name }}')">删除</button></div>
+                <p>{{ desc }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-head"><div><div class="eyebrow">Optional</div><h2>可选字段</h2></div></div>
+        <div class="history-stack">
+            {% for name, desc in schema.optional_fields.items() %}
+            <div class="history-entry">
+                <div class="meta-line"><span>{{ name }}</span><button class="btn btn-sm btn-outline-danger" onclick="AgentWeb.deleteJSONAndReload('/project/{{ project.id }}/schema/field/{{ name }}')">删除</button></div>
+                <p>{{ desc }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="panel-card wide-card">
+        <div class="panel-head">
+            <div><div class="eyebrow">Rules</div><h2>更新规则</h2></div>
+        </div>
+        <div class="history-stack">
+            {% for rule in schema.rules %}
+            <div class="history-entry">
+                <div class="meta-line"><span>规则 {{ loop.index }}</span><button class="btn btn-sm btn-outline-danger" onclick="AgentWeb.deleteJSONAndReload('/project/{{ project.id }}/schema/rule/{{ loop.index0 }}')">删除</button></div>
+                <p>{{ rule }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </article>
+    <article id="ruleCreatePanel" class="panel-card wide-card">
+        <div class="panel-head">
+            <div><div class="eyebrow">Create</div><h2>新增规则</h2></div>
+        </div>
+        <form id="addRuleForm" class="form-grid">
+            <label class="full-span"><span>规则</span><textarea class="form-control" name="rule" rows="4" required></textarea></label>
+            <div class="full-span text-end"><button class="btn btn-primary" type="submit">保存规则</button></div>
+        </form>
+    </article>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById("addFieldForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const result = await AgentWeb.postJSON("/project/{{ project.id }}/schema/field", {
+        name: form.name.value,
+        description: form.description.value,
+        required: form.required.checked,
+    });
+    if (!result.ok) {
+        alert(result.data.error || "保存失败");
+        return;
+    }
+    location.reload();
+});
+
+document.getElementById("addRuleForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const result = await AgentWeb.postJSON("/project/{{ project.id }}/schema/rule", { rule: form.rule.value });
+    if (!result.ok) {
+        alert(result.data.error || "保存失败");
+        return;
+    }
+    location.reload();
+});
+</script>
+{% endblock %}

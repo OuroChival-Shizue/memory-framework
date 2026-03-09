@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-card">
+    <div>
+        <div class="eyebrow">Foreshadowing</div>
+        <h1>未回收伏笔</h1>
+        <p class="hero-copy">当前页先做可视化聚合，不改核心数据结构。你可以按角色查看悬而未决的字段和对应章节入口。</p>
+    </div>
+</section>
+
+<section class="foreshadowing-grid">
+    {% if groups %}
+    {% for group in groups %}
+    <article class="foreshadow-card">
+        <h2>{{ group["character"] }}</h2>
+        {% for item in group["items"] %}
+        <a class="foreshadow-item" href="{{ url_for('chapter_detail', project_id=project.id, num=item.chapter) }}">
+            <strong>第 {{ item.chapter }} 章 · {{ item.field }}</strong>
+            <span>{{ item.reason }}</span>
+            <em>{{ item.value }}</em>
+        </a>
+        {% endfor %}
+    </article>
+    {% endfor %}
+    {% else %}
+    <div class="empty-card">当前没有未回收伏笔。</div>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,30 @@
+# API Keys and Secrets
+**/config.json
+**/.env
+*.key
+*.pem
+
+# User Data
+memory_framework/data/
+memory_framework/projects/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

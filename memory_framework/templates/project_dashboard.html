@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-card">
+    <div>
+        <div class="eyebrow">{{ project.genre or "未设题材" }} · {{ project.style or "未设风格" }}</div>
+        <h1>{{ project.title }}</h1>
+        <p class="hero-copy">{{ project.description or "这个项目还没有补充描述。" }}</p>
+    </div>
+    <div class="hero-actions stack-actions">
+        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProjectModal">编辑项目信息</button>
+        <a class="btn btn-primary" href="{{ url_for('chapters_page', project_id=project.id) }}">进入章节面板</a>
+    </div>
+</section>
+
+<section class="metrics-grid">
+    <article class="metric-card"><span>当前章节</span><strong>{{ project.chapter_count }}</strong></article>
+    <article class="metric-card"><span>目标章节</span><strong>{{ project.total_chapters }}</strong></article>
+    <article class="metric-card"><span>角色数量</span><strong>{{ project.character_count }}</strong></article>
+    <article class="metric-card"><span>完成度</span><strong>{{ project.completion_percent }}%</strong></article>
+</section>
+
+<section class="panel-card">
+    <div class="panel-head">
+        <div>
+            <div class="eyebrow">Status</div>
+            <h2>项目阶段</h2>
+        </div>
+    </div>
+    <div class="status-row">
+        {% for step in project.status_steps %}
+        <div class="status-chip {{ 'is-active' if step.active else '' }} {{ 'is-current' if step.current else '' }}">{{ step.label }}</div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="dashboard-grid">
+    <article class="panel-card">
+        <div class="panel-head">
+            <div>
+                <div class="eyebrow">Outline</div>
+                <h2>大纲预览</h2>
+            </div>
+            <a class="btn btn-outline-primary btn-sm" href="{{ url_for('outline_page', project_id=project.id) }}">编辑</a>
+        </div>
+        <div class="reading-surface">{{ outline[:1200] if outline else "还没有大纲。建议先把故事框架和主线冲突写进大纲页。" }}</div>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-head">
+            <div>
+                <div class="eyebrow">Quick Access</div>
+                <h2>快速操作</h2>
+            </div>
+        </div>
+        <div class="quick-grid">
+            <a class="quick-link tone-blue" href="{{ url_for('outline_page', project_id=project.id) }}">编辑大纲</a>
+            <a class="quick-link tone-purple" href="{{ url_for('generate_chapter', project_id=project.id) }}">创建写作任务</a>
+            <a class="quick-link tone-green" href="{{ url_for('characters_page', project_id=project.id) }}">查看角色</a>
+            <a class="quick-link tone-amber" href="{{ url_for('foreshadowing_page', project_id=project.id) }}">查看伏笔</a>
+        </div>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-head">
+            <div>
+                <div class="eyebrow">Recent Chapters</div>
+                <h2>最近章节</h2>
+            </div>
+            <a class="btn btn-outline-primary btn-sm" href="{{ url_for('chapters_page', project_id=project.id) }}">全部章节</a>
+        </div>
+        {% if chapters %}
+        <div class="stack-list">
+            {% for chapter in chapters %}
+            <a class="stack-item" href="{{ url_for('chapter_detail', project_id=project.id, num=chapter.num) }}">
+                <div>
+                    <strong>第 {{ chapter.num }} 章</strong>
+                    <div class="item-subtle">{{ chapter.summary[:90] if chapter.summary else chapter.preview[:90] }}</div>
+                </div>
+                <span>{{ chapter.change_count }} 次状态变更</span>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-card compact">暂无章节。</div>
+        {% endif %}
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-head">
+            <div>
+                <div class="eyebrow">Characters</div>
+                <h2>角色速览</h2>
+            </div>
+            <a class="btn btn-outline-primary btn-sm" href="{{ url_for('characters_page', project_id=project.id) }}">全部角色</a>
+        </div>
+        {% if characters %}
+        <div class="stack-list">
+            {% for character in characters %}
+            <a class="stack-item" href="{{ url_for('character_detail', project_id=project.id, name=character.name) }}">
+                <div>
+                    <strong>{{ character.name }}</strong>
+                    <div class="item-subtle">{{ character.field_count }} 个字段</div>
+                </div>
+                <span>查看详情</span>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-card compact">还没有角色。</div>
+        {% endif %}
+    </article>
+
+    <article class="panel-card wide-card">
+        <div class="panel-head">
+            <div>
+                <div class="eyebrow">Foreshadowing</div>
+                <h2>未回收伏笔</h2>
+            </div>
+            <a class="btn btn-outline-primary btn-sm" href="{{ url_for('foreshadowing_page', project_id=project.id) }}">打开页面</a>
+        </div>
+        {% if foreshadowing_groups %}
+        <div class="foreshadowing-grid">
+            {% for group in foreshadowing_groups %}
+            <div class="foreshadow-card">
+                <h3>{{ group["character"] }}</h3>
+                {% for item in group["items"][:3] %}
+                <a class="foreshadow-item" href="{{ url_for('chapter_detail', project_id=project.id, num=item.chapter) }}">
+                    <strong>第 {{ item.chapter }} 章</strong>
+                    <span>{{ item.field }} · {{ item.reason }}</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-card compact">当前没有未回收伏笔。</div>
+        {% endif %}
+    </article>
+</section>
+
+<div class="modal fade" id="editProjectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content app-modal">
+            <div class="modal-header">
+                <h5 class="modal-title">编辑项目</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateProjectForm" class="form-grid">
+                    <label><span>标题</span><input class="form-control" name="title" value="{{ project.title }}" required></label>
+                    <label><span>题材</span><input class="form-control" name="genre" value="{{ project.genre }}"></label>
+                    <label><span>风格</span><input class="form-control" name="style" value="{{ project.style }}"></label>
+                    <label><span>总章节数</span><input class="form-control" name="total_chapters" type="number" min="1" value="{{ project.total_chapters }}"></label>
+                    <label class="full-span"><span>描述</span><textarea class="form-control" name="description" rows="4">{{ project.description }}</textarea></label>
+                    <div class="full-span text-end"><button class="btn btn-primary" type="submit">保存</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById("updateProjectForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const payload = {
+        title: form.title.value,
+        genre: form.genre.value,
+        style: form.style.value,
+        total_chapters: parseInt(form.total_chapters.value, 10),
+        description: form.description.value,
+    };
+    const result = await AgentWeb.postJSON("/project/{{ project.id }}/update", payload);
+    if (!result.ok) {
+        alert(result.data.error || "保存失败");
+        return;
+    }
+    location.reload();
+});
+</script>
+{% endblock %}

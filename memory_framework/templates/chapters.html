@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-card">
+    <div>
+        <div class="eyebrow">Chapter Workspace</div>
+        <h1>章节面板</h1>
+        <p class="hero-copy">这里保留章节生成、流式输出和逐字段状态更新可视化。功能逻辑不变，页面层改为项目化工作台。</p>
+    </div>
+    <div class="hero-actions">
+        <a class="btn btn-primary btn-lg" href="{{ url_for('generate_chapter', project_id=project.id) }}">创建写作任务</a>
+    </div>
+</section>
+
+<section class="panel-card">
+    <div class="panel-head">
+        <div><div class="eyebrow">Chapters</div><h2>章节列表</h2></div>
+    </div>
+    {% if chapters %}
+    <div class="chapter-stack">
+        {% for chapter in chapters %}
+        <article class="chapter-card">
+            <div class="chapter-main">
+                <div class="chapter-index">第 {{ chapter.num }} 章</div>
+                <p>{{ chapter.summary[:160] if chapter.summary else chapter.preview[:160] }}</p>
+                <div class="meta-line">
+                    <span>{{ chapter.content_length }} 字符</span>
+                    <span>{{ chapter.change_count }} 次状态变更</span>
+                </div>
+            </div>
+            <div class="card-actions vertical-actions">
+                <a class="btn btn-primary" href="{{ url_for('chapter_detail', project_id=project.id, num=chapter.num) }}">查看详情</a>
+                <button class="btn btn-outline-warning" data-regenerate="{{ chapter.num }}">更新状态</button>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-card">还没有章节。</div>
+    {% endif %}
+</section>
+
+<section id="streamPanel" class="panel-card stream-panel" hidden>
+    <div class="panel-head">
+        <div><div class="eyebrow">Live Stream</div><h2 id="statusMsg">准备中...</h2></div>
+    </div>
+    <div class="stream-layout">
+        <pre id="contentStream" class="stream-content"></pre>
+        <div id="generateLog" class="stream-log"></div>
+    </div>
+</section>
+
+<a class="fab" href="{{ url_for('generate_chapter', project_id=project.id) }}" title="创建写作任务" aria-label="创建写作任务">+</a>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+AgentWeb.setupRegenerateButtons("{{ project.id }}", "[data-regenerate]");
+</script>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-card">
+    <div>
+        <div class="eyebrow">Characters</div>
+        <h1>角色管理</h1>
+        <p class="hero-copy">按项目查看角色当前状态。角色详情页保留完整历史，这里专注于浏览、跳转和快速管理。</p>
+    </div>
+    <div class="hero-actions">
+        <a class="btn btn-primary btn-lg" href="{{ url_for('new_character_page', project_id=project.id) }}">创建角色</a>
+    </div>
+</section>
+
+<section class="project-grid">
+    {% if characters %}
+    {% for character in characters %}
+    <article class="project-card">
+        <div class="card-badge tone-green">角色</div>
+        <h3>{{ character.name }}</h3>
+        <div class="field-list">
+            {% for field_name, field_value in character.preview_fields %}
+            <div class="field-row"><span>{{ field_name }}</span><strong>{{ field_value }}</strong></div>
+            {% endfor %}
+        </div>
+        <div class="meta-line">
+            <span>{{ character.field_count }} 个字段</span>
+            <span>{{ character.updated_at }}</span>
+        </div>
+        <div class="card-actions">
+            <a class="btn btn-primary" href="{{ url_for('character_detail', project_id=project.id, name=character.name) }}">查看详情</a>
+            <button class="btn btn-outline-danger" onclick='AgentWeb.deleteCharacter({{ project.id|tojson }}, {{ character.name|tojson }})'>删除</button>
+        </div>
+    </article>
+    {% endfor %}
+    {% else %}
+    <div class="empty-card">当前项目还没有角色。</div>
+    {% endif %}
+</section>
+
+<a class="fab" href="{{ url_for('new_character_page', project_id=project.id) }}" title="创建角色" aria-label="创建角色">+</a>
+{% endblock %}
